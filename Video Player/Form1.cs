@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -9,6 +10,9 @@ namespace Video_Player
     {
         private Size formOriginalSize;
         private Rectangle recMP;
+        List<string> listOfExtensions = new List<string>() {".pdf",".xls", ".xlsx",".pptx", ".ppt", ".lnk", ".txt", ".doc", ".docx" }; 
+
+        private string rootPath;
         public Form1()
         {
             InitializeComponent();
@@ -18,24 +22,6 @@ namespace Video_Player
             this.Resize += Form1_Resize;
             formOriginalSize = this.Size;
             recMP = new Rectangle(axWindowsMediaPlayer.Location, axWindowsMediaPlayer.Size);
-        }
-
-        private void selectVideo_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if(openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                axWindowsMediaPlayer.URL = openFileDialog.FileName;
-            }
-        }
-
-        private void axWindowsMediaPlayer_Enter(object sender, EventArgs e)
-        {
-            /*OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                axWindowsMediaPlayer.URL = openFileDialog.FileName;
-            }*/
         }
 
         void Form1_Resize(object sender, EventArgs e)
@@ -63,52 +49,27 @@ namespace Video_Player
 
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             dialog.ShowDialog();
-            string rootPath = dialog.SelectedPath;
-            string[] pathes = Directory.GetFiles(rootPath);
-
-            foreach (string path in pathes)
+            if(dialog.SelectedPath != "")
             {
-                listBox1.Items.Add(path);
-            }
-        }
+                rootPath = dialog.SelectedPath;
+                string[] pathes = Directory.GetFiles(rootPath);
 
-        private void mediaPlayFromPath(string path)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                axWindowsMediaPlayer.URL = openFileDialog.FileName;
-            }
-        }
+                listBox1.Items.Clear();
 
-        private void mediaPlay()
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                axWindowsMediaPlayer.URL = openFileDialog.FileName;
+
+                foreach (string path in pathes)
+                {
+                    string ex = Path.GetExtension(path);
+                    if(! listOfExtensions.Contains(ex))
+                        listBox1.Items.Add(Path.GetFileName(path));
+                }
             }
         }
         
         private void selectedPlay()
         {
             var selectedMediaPath = listBox1.GetItemText(listBox1.SelectedItem);
-            axWindowsMediaPlayer.URL = selectedMediaPath;
-            axWindowsMediaPlayer.Ctlcontrols.play();
-        }
-
-        private async void listBox1_DoubleClick(object sender, EventArgs e)
-        {
-            
-            
-        }
-
-        private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            listBox1.Visible = false;
-
-            var selectedMediaPath = listBox1.GetItemText(listBox1.SelectedItem);
-            axWindowsMediaPlayer.URL = selectedMediaPath;
+            axWindowsMediaPlayer.URL = Path.Combine(rootPath, selectedMediaPath);
             axWindowsMediaPlayer.Ctlcontrols.play();
         }
 
@@ -124,7 +85,30 @@ namespace Video_Player
 
         private void playlistToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            listBox1.Visible = true;
+            listBox1.Visible = ! listBox1.Visible;
+        }
+
+        private void listBox1_MouseDoubleClick_1(object sender, MouseEventArgs e)
+        {
+            listBox1.Visible = false;
+
+            selectedPlay();
+        }
+
+        private void quitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            listBox1.Visible= false;
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                axWindowsMediaPlayer.URL = openFileDialog.FileName;
+            }
         }
     }
 }
